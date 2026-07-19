@@ -1,0 +1,218 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Clever\\Desktop\\BeautyManager\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|c:\\users\\clever\\desktop\\beautymanager\\views\\ucclients.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}",
+      "RelativeMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|solutionrelative:views\\ucclients.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|c:\\users\\clever\\desktop\\beautymanager\\views\\mainframe.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}",
+      "RelativeMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|solutionrelative:views\\mainframe.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|c:\\users\\clever\\desktop\\beautymanager\\views\\ucrendezvous.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}",
+      "RelativeMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|solutionrelative:views\\ucrendezvous.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|c:\\users\\clever\\desktop\\beautymanager\\views\\ucrendezvous.designer.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}",
+      "RelativeMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|solutionrelative:views\\ucrendezvous.designer.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|c:\\users\\clever\\desktop\\beautymanager\\views\\mainframe.designer.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}",
+      "RelativeMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|solutionrelative:views\\mainframe.designer.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|c:\\users\\clever\\desktop\\beautymanager\\views\\ucfacture.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}",
+      "RelativeMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|solutionrelative:views\\ucfacture.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|c:\\users\\clever\\desktop\\beautymanager\\views\\ucfacture.designer.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}",
+      "RelativeMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|solutionrelative:views\\ucfacture.designer.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|c:\\users\\clever\\desktop\\beautymanager\\utils\\etatshelper.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}",
+      "RelativeMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|solutionrelative:utils\\etatshelper.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|c:\\users\\clever\\desktop\\beautymanager\\views\\ucproduits.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}",
+      "RelativeMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|solutionrelative:views\\ucproduits.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|c:\\users\\clever\\desktop\\beautymanager\\views\\frmprestation.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}",
+      "RelativeMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|solutionrelative:views\\frmprestation.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|c:\\users\\clever\\desktop\\beautymanager\\views\\ucemployes.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}",
+      "RelativeMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|solutionrelative:views\\ucemployes.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|c:\\users\\clever\\desktop\\beautymanager\\controllers\\clientcontroller.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}",
+      "RelativeMoniker": "D:0:0:{27046059-1098-28FE-C97E-CC5548753675}|BeautyManager.vbproj|solutionrelative:controllers\\clientcontroller.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{b1e99781-ab81-11d0-b683-00aa00a3ee26}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "ucRendezVous.Designer.vb",
+              "DocumentMoniker": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\ucRendezVous.Designer.vb",
+              "RelativeDocumentMoniker": "Views\\ucRendezVous.Designer.vb",
+              "ToolTip": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\ucRendezVous.Designer.vb",
+              "RelativeToolTip": "Views\\ucRendezVous.Designer.vb",
+              "ViewState": "AgIAAL8DAAAAAAAAAAAAAL0AAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003361|",
+              "WhenOpened": "2026-06-07T10:03:35.06Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Mainframe.vb",
+              "DocumentMoniker": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\Mainframe.vb",
+              "RelativeDocumentMoniker": "Views\\Mainframe.vb",
+              "ToolTip": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\Mainframe.vb",
+              "RelativeToolTip": "Views\\Mainframe.vb",
+              "ViewState": "AgIAABcAAAAAAAAAAAAuwBsAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003361|",
+              "WhenOpened": "2026-06-07T10:05:59.158Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ucClients.vb",
+              "DocumentMoniker": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\ucClients.vb",
+              "RelativeDocumentMoniker": "Views\\ucClients.vb",
+              "ToolTip": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\ucClients.vb",
+              "RelativeToolTip": "Views\\ucClients.vb",
+              "ViewState": "AgIAACcAAAAAAAAAAAAYwDMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003361|",
+              "WhenOpened": "2026-06-04T21:53:24.107Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ucRendezVous.vb",
+              "DocumentMoniker": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\ucRendezVous.vb",
+              "RelativeDocumentMoniker": "Views\\ucRendezVous.vb",
+              "ToolTip": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\ucRendezVous.vb",
+              "RelativeToolTip": "Views\\ucRendezVous.vb",
+              "ViewState": "AgIAAAQAAAAAAAAAAAAAAAUAAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003361|",
+              "WhenOpened": "2026-06-07T09:18:14.201Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Mainframe.Designer.vb",
+              "DocumentMoniker": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\Mainframe.Designer.vb",
+              "RelativeDocumentMoniker": "Views\\Mainframe.Designer.vb",
+              "ToolTip": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\Mainframe.Designer.vb",
+              "RelativeToolTip": "Views\\Mainframe.Designer.vb",
+              "ViewState": "AgIAAOUBAAAAAAAAAAAQwP8BAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003361|",
+              "WhenOpened": "2026-06-07T10:06:10.702Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "ucFacture.Designer.vb",
+              "DocumentMoniker": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\ucFacture.Designer.vb",
+              "RelativeDocumentMoniker": "Views\\ucFacture.Designer.vb",
+              "ToolTip": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\ucFacture.Designer.vb",
+              "RelativeToolTip": "Views\\ucFacture.Designer.vb",
+              "ViewState": "AgIAAPYCAAAAAAAAAAAQwBADAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003361|",
+              "WhenOpened": "2026-06-07T10:04:12.562Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ucFacture.vb",
+              "DocumentMoniker": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\ucFacture.vb",
+              "RelativeDocumentMoniker": "Views\\ucFacture.vb",
+              "ToolTip": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\ucFacture.vb",
+              "RelativeToolTip": "Views\\ucFacture.vb",
+              "ViewState": "AgIAAEoCAAAAAAAAAAAAwEoCAAAcAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003361|",
+              "WhenOpened": "2026-06-07T09:36:28.02Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "EtatsHelper.vb",
+              "DocumentMoniker": "C:\\Users\\Clever\\Desktop\\BeautyManager\\utils\\EtatsHelper.vb",
+              "RelativeDocumentMoniker": "utils\\EtatsHelper.vb",
+              "ToolTip": "C:\\Users\\Clever\\Desktop\\BeautyManager\\utils\\EtatsHelper.vb",
+              "RelativeToolTip": "utils\\EtatsHelper.vb",
+              "ViewState": "AgIAAIQCAAAAAAAAAAAQwJ4CAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003361|",
+              "WhenOpened": "2026-06-07T10:01:39.745Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "ucProduits.vb",
+              "DocumentMoniker": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\ucProduits.vb",
+              "RelativeDocumentMoniker": "Views\\ucProduits.vb",
+              "ToolTip": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\ucProduits.vb",
+              "RelativeToolTip": "Views\\ucProduits.vb",
+              "ViewState": "AgIAAGUBAAAAAAAAAAAAwHwBAAAOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003361|",
+              "WhenOpened": "2026-06-07T09:29:21.721Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "frmPrestation.vb",
+              "DocumentMoniker": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\frmPrestation.vb",
+              "RelativeDocumentMoniker": "Views\\frmPrestation.vb",
+              "ToolTip": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\frmPrestation.vb",
+              "RelativeToolTip": "Views\\frmPrestation.vb",
+              "ViewState": "AgIAAIgAAAAAAAAAAAAQwJcAAAAYAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003361|",
+              "WhenOpened": "2026-06-07T09:18:32.821Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "ClientController.vb",
+              "DocumentMoniker": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Controllers\\ClientController.vb",
+              "RelativeDocumentMoniker": "Controllers\\ClientController.vb",
+              "ToolTip": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Controllers\\ClientController.vb",
+              "RelativeToolTip": "Controllers\\ClientController.vb",
+              "ViewState": "AgIAABMAAAAAAAAAAAAQwCUAAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003361|",
+              "WhenOpened": "2026-06-07T09:08:51.839Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "ucEmployes.vb",
+              "DocumentMoniker": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\ucEmployes.vb",
+              "RelativeDocumentMoniker": "Views\\ucEmployes.vb",
+              "ToolTip": "C:\\Users\\Clever\\Desktop\\BeautyManager\\Views\\ucEmployes.vb",
+              "RelativeToolTip": "Views\\ucEmployes.vb",
+              "ViewState": "AgIAADUBAAAAAAAAAAAcwD0BAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003361|",
+              "WhenOpened": "2026-06-04T21:53:05.246Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

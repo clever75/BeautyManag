@@ -1,0 +1,245 @@
+﻿Imports MySql.Data
+Imports MySql.Data.MySqlClient
+
+Public Class ProduitController
+
+    Private Function LireProduit(reader As MySqlDataReader) As Produit
+        Dim p As New Produit()
+        p.IdProduit = reader.GetInt32("idProduit")
+        p.Nom = reader.GetString("nom")
+        p.Categorie = If(reader.IsDBNull(reader.GetOrdinal("categorie")), "", reader.GetString("categorie"))
+        p.Prix = reader.GetDecimal("prix")
+        p.StockActuel = reader.GetInt32("stockActuel")
+        p.SeuilAlerte = reader.GetInt32("seuilAlerte")
+        p.Description = If(reader.IsDBNull(reader.GetOrdinal("description")), "", reader.GetString("description"))
+        p.Actif = reader.GetBoolean("actif")
+        Return p
+    End Function
+
+    ' Récupérer tous les produits avec recherche et filtre catégorie
+    Public Function GetTousProduits(Optional recherche As String = "", Optional categorie As String = "") As List(Of Produit)
+        Dim liste As New List(Of Produit)
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim sql = "SELECT * FROM produit WHERE 1=1"
+            If Not String.IsNullOrEmpty(recherche) Then
+                sql &= " AND nom LIKE @recherche"
+            End If
+            If Not String.IsNullOrEmpty(categorie) Then
+                sql &= " AND categorie = @categorie"
+            End If
+            sql &= " ORDER BY idProduit DESC"
+
+            Using cmd As New MySqlCommand(sql, conn)
+                If Not String.IsNullOrWhiteSpace(recherche) Then
+                    cmd.Parameters.AddWithValue("@recherche", "%" & recherche & "%")
+                End If
+                If Not String.IsNullOrWhiteSpace(categorie) Then
+                    cmd.Parameters.AddWithValue("@categorie", categorie)
+                End If
+
+                Using reader = cmd.ExecuteReader()
+                    While reader.Read()
+                        liste.Add(LireProduit(reader))
+                    End While
+                End Using
+            End Using
+        End Using
+        Return liste
+    End Function
+
+    ' Récupérer uniquement les produits actifs (pour les factures)
+    Public Function GetProduitsActifs() As List(Of Produit)
+        Dim liste As New List(Of Produit)
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim sql = "SELECT * FROM produit WHERE actif = TRUE ORDER BY categorie, nom"
+            Using cmd As New MySqlCommand(sql, conn)
+                Using reader = cmd.ExecuteReader()
+                    While reader.Read()
+                        liste.Add(LireProduit(reader))
+                    End While
+                End Using
+            End Using
+        End Using
+        Return liste
+    End Function
+
+    ' Récupérer un produit par son ID
+    Public Function GetProduitParId(idProduit As Integer) As Produit
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim sql = "SELECT * FROM produit WHERE idProduit = @id"
+            Using cmd As New MySqlCommand(sql, conn)
+                cmd.Parameters.AddWithValue("@id", idProduit)
+                Using reader = cmd.ExecuteReader()
+                    If reader.Read() Then
+                        Return LireProduit(reader)
+                    End If
+                End Using
+            End Using
+        End Using
+        Return Nothing
+    End Function
+
+    ' Ajouter un produit (stock initial = 0)
+    Public Sub AjouterProduit(p As Produit)
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim sql = "INSERT INTO produit (nom, categorie, prix, stockActuel, seuilAlerte, description, actif)
+                       VALUES (@nom, @categorie, @prix, 0, @seuil, @desc, @actif)"
+            Using cmd As New MySqlCommand(sql, conn)
+                cmd.Parameters.AddWithValue("@nom", p.Nom)
+                cmd.Parameters.AddWithValue("@categorie", p.Categorie)
+                cmd.Parameters.AddWithValue("@prix", p.Prix)
+                cmd.Parameters.AddWithValue("@seuil", p.SeuilAlerte)
+                cmd.Parameters.AddWithValue("@desc", p.Description)
+                cmd.Parameters.AddWithValue("@actif", p.Actif)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
+
+    ' Modifier un produit (sans toucher au stock)
+    Public Sub ModifierProduit(p As Produit)
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim sql = "UPDATE produit SET nom = @nom, categorie = @categorie, prix = @prix,
+                       seuilAlerte = @seuil, description = @desc, actif = @actif
+                       WHERE idProduit = @id"
+            Using cmd As New MySqlCommand(sql, conn)
+                cmd.Parameters.AddWithValue("@nom", p.Nom)
+                cmd.Parameters.AddWithValue("@categorie", p.Categorie)
+                cmd.Parameters.AddWithValue("@prix", p.Prix)
+                cmd.Parameters.AddWithValue("@seuil", p.SeuilAlerte)
+                cmd.Parameters.AddWithValue("@desc", p.Description)
+                cmd.Parameters.AddWithValue("@actif", p.Actif)
+                cmd.Parameters.AddWithValue("@id", p.IdProduit)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
+
+    ' Mettre à jour le stock uniquement (réapprovisionnement)
+    Public Sub MettreAJourStock(idProduit As Integer, nouveauStock As Integer)
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim sql = "UPDATE produit SET stockActuel = @stock WHERE idProduit = @id"
+            Using cmd As New MySqlCommand(sql, conn)
+                cmd.Parameters.AddWithValue("@stock", nouveauStock)
+                cmd.Parameters.AddWithValue("@id", idProduit)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
+
+    ' Diminuer le stock lors d'une vente (appelé depuis FactureController)
+    Public Sub DiminuerStock(idProduit As Integer, quantite As Integer)
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            ' On vérifie d'abord que le stock est suffisant
+            Dim stockActuel As Integer = 0
+            Dim sqlVerif = "SELECT stockActuel FROM produit WHERE idProduit = @id"
+            Using cmd As New MySqlCommand(sqlVerif, conn)
+                cmd.Parameters.AddWithValue("@id", idProduit)
+                stockActuel = CInt(cmd.ExecuteScalar())
+            End Using
+
+            If stockActuel < quantite Then
+                Throw New Exception($"Stock insuffisant. Stock disponible : {stockActuel} unité(s).")
+            End If
+
+            Dim sql = "UPDATE produit SET stockActuel = stockActuel - @qte WHERE idProduit = @id"
+            Using cmd As New MySqlCommand(sql, conn)
+                cmd.Parameters.AddWithValue("@qte", quantite)
+                cmd.Parameters.AddWithValue("@id", idProduit)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
+
+    ' Désactiver un produit
+    Public Sub DesactiverProduit(idProduit As Integer)
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim sql = "UPDATE produit SET actif = FALSE WHERE idProduit = @id"
+            Using cmd As New MySqlCommand(sql, conn)
+                cmd.Parameters.AddWithValue("@id", idProduit)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
+
+    ' Vérifier si le produit est utilisé dans des factures (FactureDetail)
+    Public Function ADesLiens(idProduit As Integer) As Boolean
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim sql = "SELECT COUNT(*) FROM factureDetail WHERE idProduit = @id"
+            Using cmd As New MySqlCommand(sql, conn)
+                cmd.Parameters.AddWithValue("@id", idProduit)
+                Return CInt(cmd.ExecuteScalar()) > 0
+            End Using
+        End Using
+    End Function
+
+    ' Supprimer un produit si aucun lien n'existe
+    Public Sub SupprimerProduit(idProduit As Integer)
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim cmd As New MySqlCommand("DELETE FROM produit WHERE idProduit = @id", conn)
+            cmd.Parameters.AddWithValue("@id", idProduit)
+            cmd.ExecuteNonQuery()
+        End Using
+    End Sub
+
+    ' Récupérer les catégories existantes en base (pour les ComboBox)
+    Public Function GetCategories() As List(Of String)
+        Dim liste As New List(Of String)
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim sql = "SELECT DISTINCT categorie FROM produit WHERE categorie IS NOT NULL ORDER BY categorie"
+            Using cmd As New MySqlCommand(sql, conn)
+                Using reader = cmd.ExecuteReader()
+                    While reader.Read()
+                        liste.Add(reader.GetString("categorie"))
+                    End While
+                End Using
+            End Using
+        End Using
+        Return liste
+    End Function
+
+    ' Compter les produits en alerte (pour le dashboard)
+    Public Function CompterProduitsEnAlerte() As Integer
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim sql = "SELECT COUNT(*) FROM produit WHERE actif = TRUE AND stockActuel <= seuilAlerte"
+            Using cmd As New MySqlCommand(sql, conn)
+                Return CInt(cmd.ExecuteScalar())
+            End Using
+        End Using
+    End Function
+
+    ' Compter les produits en rupture (pour le dashboard)
+    Public Function CompterProduitsEnRupture() As Integer
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim sql = "SELECT COUNT(*) FROM produit WHERE actif = TRUE AND stockActuel = 0"
+            Using cmd As New MySqlCommand(sql, conn)
+                Return CInt(cmd.ExecuteScalar())
+            End Using
+        End Using
+    End Function
+    Public Function NomExiste(nom As String, idExclure As Integer) As Boolean
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim sql = "SELECT COUNT(*) FROM produit WHERE nom = @nom AND idProduit <> @id"
+            Using cmd As New MySqlClient.MySqlCommand(sql, conn)
+
+                cmd.Parameters.AddWithValue("@nom", nom)
+                cmd.Parameters.AddWithValue("@id", idExclure)
+                Return Convert.ToInt32(cmd.ExecuteScalar()) > 0
+            End Using
+        End Using
+    End Function
+End Class

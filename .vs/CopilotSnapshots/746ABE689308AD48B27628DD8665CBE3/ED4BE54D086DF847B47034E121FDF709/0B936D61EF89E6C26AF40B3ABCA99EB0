@@ -1,0 +1,542 @@
+﻿' =====================================================
+' USERCONTROL PRODUITS
+' =====================================================
+Imports Guna.UI2.WinForms
+Imports System.Text.RegularExpressions
+
+Public Class ucProduits
+
+    Private _produitSelectionne As Produit = Nothing
+    Private _modeAjout As Boolean = False
+    Private _tousProduits As New List(Of Produit)
+
+    ' ─────────────────────────────────────────────
+    ' CHARGEMENT
+    ' ─────────────────────────────────────────────
+    Private Sub ucProduits_Load(sender As Object, e As EventArgs) Handles Me.Load
+        ConfigurerColonnes()
+        ChargerCategories()
+        ChargerProduits()
+        ViderFiche()
+        dgvProduits.ClearSelection()
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' CONFIGURER COLONNES
+    ' ─────────────────────────────────────────────
+    Private Sub ConfigurerColonnes()
+        If dgvProduits.Columns.Contains("colNom") Then Return
+
+        Dim c1 As New DataGridViewTextBoxColumn()
+        c1.Name = "colNom" : c1.HeaderText = "Produit"
+        c1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+        c1.ReadOnly = True
+
+        Dim c2 As New DataGridViewTextBoxColumn()
+        c2.Name = "colCategorie" : c2.HeaderText = "Catégorie"
+        c2.Width = 125 : c2.ReadOnly = True
+
+        Dim c3 As New DataGridViewTextBoxColumn()
+        c3.Name = "colPrix" : c3.HeaderText = "Prix (FCFA)"
+        c3.Width = 80 : c3.ReadOnly = True
+
+        Dim c4 As New DataGridViewTextBoxColumn()
+        c4.Name = "colStock" : c4.HeaderText = "Stock"
+        c4.Width = 55 : c4.ReadOnly = True
+
+        Dim c5 As New DataGridViewTextBoxColumn()
+        c5.Name = "colStatut" : c5.HeaderText = "Statut"
+        c5.Width = 75 : c5.ReadOnly = True
+
+        dgvProduits.Columns.AddRange(c1, c2, c3, c4, c5)
+        dgvProduits.RowTemplate.Height = 48
+        dgvProduits.ThemeStyle.HeaderStyle.BackColor = ColorTranslator.FromHtml("#3D1A24")
+        dgvProduits.ThemeStyle.HeaderStyle.ForeColor = ColorTranslator.FromHtml("#FFF0F3")
+        dgvProduits.ThemeStyle.RowsStyle.SelectionBackColor = ColorTranslator.FromHtml("#FDE8EF")
+        dgvProduits.ThemeStyle.RowsStyle.SelectionForeColor = ColorTranslator.FromHtml("#3D1A24")
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' CHARGER CATÉGORIES
+    ' ─────────────────────────────────────────────
+    Private Sub ChargerCategories()
+        Dim cats As New List(Of String) From {
+            "Toutes catégories",
+            "Soin cheveux",
+            "Mèches & extensions",
+            "Onglerie",
+            "Maquillage",
+            "Hygiène & soin",
+            "Accessoires"
+        }
+        cboCategorieFiltre.Items.Clear()
+        For Each c In cats
+            cboCategorieFiltre.Items.Add(c)
+        Next
+        cboCategorieFiltre.SelectedIndex = 0
+
+        cboCategorie.Items.Clear()
+        For Each c In cats
+            If c <> "Toutes catégories" Then cboCategorie.Items.Add(c)
+        Next
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' CHARGER PRODUITS
+    ' ─────────────────────────────────────────────
+    Private Sub ChargerProduits()
+        Dim recherche As String = txtRecherche.Text.Trim()
+        Dim categorie As String = ""
+        If cboCategorieFiltre.SelectedIndex > 0 Then
+            categorie = cboCategorieFiltre.SelectedItem.ToString()
+        End If
+
+        Try
+            _tousProduits = Mainframe.ProduitCtrl.GetTousProduits(recherche, categorie)
+            AfficherProduits(_tousProduits)
+        Catch ex As Exception
+            MsgBox("Erreur lors du chargement des produits : " & ex.Message,
+                   MsgBoxStyle.Critical, "Erreur")
+        End Try
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' AFFICHER PRODUITS
+    ' ─────────────────────────────────────────────
+    Private Sub AfficherProduits(liste As List(Of Produit))
+        dgvProduits.Rows.Clear()
+
+        If liste.Count = 0 Then
+            lblSousTitre.Text = "Aucun résultat trouvé"
+            dgvProduits.ClearSelection()
+            Return
+        Else
+            lblSousTitre.Text = liste.Count & " produit(s)"
+        End If
+
+        For Each p In liste
+            Dim index As Integer = dgvProduits.Rows.Add()
+            Dim row = dgvProduits.Rows(index)
+
+            row.Cells("colNom").Value = p.Nom
+            row.Cells("colCategorie").Value = p.Categorie
+        row.Cells("colPrix").Value = FormatNumber(p.Prix, 0) & " FCFA"
+            row.Cells("colStock").Value = p.StockActuel.ToString()
+
+            If p.EnRupture Then
+                row.Cells("colStatut").Value = "Rupture"
+                row.DefaultCellStyle.BackColor = ColorTranslator.FromHtml("#FCEBEB")
+                row.Cells("colStock").Style.ForeColor = ColorTranslator.FromHtml("#A32D2D")
+                row.Cells("colStock").Style.Font = New Font("Segoe UI", 9, FontStyle.Bold)
+            ElseIf p.EnAlerte Then
+                row.Cells("colStatut").Value = "Stock faible"
+                row.DefaultCellStyle.BackColor = ColorTranslator.FromHtml("#FEF5E7")
+                row.Cells("colStock").Style.ForeColor = ColorTranslator.FromHtml("#854F0B")
+                row.Cells("colStock").Style.Font = New Font("Segoe UI", 9, FontStyle.Bold)
+            ElseIf Not p.Actif Then
+                row.Cells("colStatut").Value = "Inactif"
+                row.DefaultCellStyle.ForeColor = ColorTranslator.FromHtml("#A07080")
+            Else
+                row.Cells("colStatut").Value = "En stock"
+                row.Cells("colStock").Style.ForeColor = ColorTranslator.FromHtml("#0F6E56")
+                row.Cells("colStock").Style.Font = New Font("Segoe UI", 9, FontStyle.Bold)
+            End If
+
+            row.Tag = p
+        Next
+
+        dgvProduits.ClearSelection()
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' SÉLECTION D'UN PRODUIT
+    ' ─────────────────────────────────────────────
+    Private Sub dgvProduits_SelectionChanged(sender As Object, e As EventArgs) _
+        Handles dgvProduits.SelectionChanged
+
+        If dgvProduits.SelectedRows.Count = 0 Then Return
+        If Not Me.IsHandleCreated Then Return
+
+        Dim row = dgvProduits.SelectedRows(0)
+        If row.Tag Is Nothing Then Return
+
+        _modeAjout = False
+        _produitSelectionne = CType(row.Tag, Produit)
+        RemplirFiche(_produitSelectionne)
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' REMPLIR LA FICHE
+    ' ─────────────────────────────────────────────
+    Private Sub RemplirFiche(p As Produit)
+        If p Is Nothing Then Return
+
+        lblNomProduit.Text = p.Nom
+        lblCategorieProduit.Text = p.Categorie & " · " & FormatNumber(p.Prix, 0) & " FCFA"
+
+        txtNom.Text = p.Nom
+        cboCategorie.Text = p.Categorie
+        txtDescription.Text = p.Description
+        txtPrix.Text = p.Prix.ToString("0")
+        ' Ne pas afficher de date (modification annulée)
+        txtSeuilAlerte.Text = p.SeuilAlerte.ToString()
+        tglActif.Checked = p.Actif
+        txtQteAjouter.Text = ""
+        lblCalculReappro.Text = ""
+
+        If p.Actif Then
+            btnDesactiver.Text = "Désactiver"
+            btnDesactiver.FillColor = ColorTranslator.FromHtml("#FEF5E7")
+            btnDesactiver.ForeColor = ColorTranslator.FromHtml("#854F0B")
+        Else
+            btnDesactiver.Text = "Réactiver"
+            btnDesactiver.FillColor = ColorTranslator.FromHtml("#E1F5EE")
+            btnDesactiver.ForeColor = ColorTranslator.FromHtml("#0F6E56")
+        End If
+
+        If p.EnRupture Then
+            pnlReappro.BackColor = ColorTranslator.FromHtml("#FCEBEB")
+            lblCalculReappro.ForeColor = ColorTranslator.FromHtml("#A32D2D")
+        ElseIf p.EnAlerte Then
+            pnlReappro.BackColor = ColorTranslator.FromHtml("#FEF5E7")
+            lblCalculReappro.ForeColor = ColorTranslator.FromHtml("#854F0B")
+        Else
+            pnlReappro.BackColor = ColorTranslator.FromHtml("#F5F5F5")
+            lblCalculReappro.ForeColor = ColorTranslator.FromHtml("#A07080")
+        End If
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' VIDER LA FICHE
+    ' ─────────────────────────────────────────────
+    Private Sub ViderFiche()
+        _produitSelectionne = Nothing
+        lblNomProduit.Text = "Sélectionner un produit"
+        lblCategorieProduit.Text = ""
+        txtNom.Text = ""
+        cboCategorie.SelectedIndex = -1
+        txtDescription.Text = ""
+        txtPrix.Text = ""
+        txtSeuilAlerte.Text = ""
+        txtQteAjouter.Text = ""
+        lblCalculReappro.Text = ""
+        tglActif.Checked = True
+        btnDesactiver.Text = "Désactiver"
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' CALCUL RÉAPPROVISIONNEMENT EN TEMPS RÉEL
+    ' ─────────────────────────────────────────────
+    Private Sub txtQteAjouter_TextChanged(sender As Object, e As EventArgs) _
+        Handles txtQteAjouter.TextChanged
+        If _produitSelectionne Is Nothing Then Return
+        Dim qte As Integer
+        If Integer.TryParse(txtQteAjouter.Text, qte) AndAlso qte > 0 Then
+            Dim nouveauStock As Integer = _produitSelectionne.StockActuel + qte
+            lblCalculReappro.Text = $"→ {_produitSelectionne.StockActuel} + {qte} = {nouveauStock} unités"
+        Else
+            lblCalculReappro.Text = ""
+        End If
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' BOUTON RÉAPPROVISIONNER
+    ' ─────────────────────────────────────────────
+    Private Sub btnReapprovisionner_Click(sender As Object, e As EventArgs) _
+        Handles btnReapprovisionner.Click
+
+        If _produitSelectionne Is Nothing Then
+            MsgBox("Veuillez sélectionner un produit d'abord.",
+                   MsgBoxStyle.Exclamation, "Aucun produit sélectionné")
+            Return
+        End If
+
+        Dim qte As Integer
+        If Not Integer.TryParse(txtQteAjouter.Text, qte) OrElse qte <= 0 Then
+            MsgBox("Veuillez entrer une quantité valide supérieure à 0." & vbCrLf &
+                   "Exemple : 12",
+                   MsgBoxStyle.Exclamation, "Quantité invalide")
+            txtQteAjouter.Focus()
+            Return
+        End If
+
+        If qte > 9999 Then
+            MsgBox("La quantité ne peut pas dépasser 9999 unités.",
+                   MsgBoxStyle.Exclamation, "Quantité trop élevée")
+            txtQteAjouter.Focus()
+            Return
+        End If
+
+        Dim nouveauStock As Integer = _produitSelectionne.StockActuel + qte
+        Dim confirm = MsgBox($"Confirmer l'ajout de {qte} unité(s) ?" & vbCrLf &
+                             $"Stock actuel : {_produitSelectionne.StockActuel}" & vbCrLf &
+                             $"Nouveau stock : {nouveauStock}",
+                             MsgBoxStyle.YesNo Or MsgBoxStyle.Question, "Réapprovisionnement")
+
+        If confirm = MsgBoxResult.Yes Then
+            Try
+                Mainframe.ProduitCtrl.MettreAJourStock(_produitSelectionne.IdProduit, nouveauStock)
+                _produitSelectionne.StockActuel = nouveauStock
+                txtQteAjouter.Text = ""
+                lblCalculReappro.Text = ""
+                MsgBox("Stock mis à jour avec succès.", MsgBoxStyle.Information, "Succès")
+                ChargerProduits()
+                RemplirFiche(_produitSelectionne)
+            Catch ex As Exception
+                MsgBox("Erreur : " & ex.Message, MsgBoxStyle.Critical, "Erreur")
+            End Try
+        End If
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' BOUTON NOUVEAU PRODUIT
+    ' ─────────────────────────────────────────────
+    Private Sub btnNouveauProduit_Click(sender As Object, e As EventArgs) _
+        Handles btnNouveauProduit.Click
+        _modeAjout = True
+        _produitSelectionne = Nothing
+        dgvProduits.ClearSelection()
+        ViderFiche()
+        lblNomProduit.Text = "Nouveau produit"
+        txtNom.Focus()
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' BOUTON ENREGISTRER
+    ' ─────────────────────────────────────────────
+    Private Sub btnEnregistrer_Click(sender As Object, e As EventArgs) _
+        Handles btnEnregistrer.Click
+
+        ' ── Nom obligatoire ──
+        If String.IsNullOrWhiteSpace(txtNom.Text) Then
+            MsgBox("Le nom du produit est obligatoire.",
+                   MsgBoxStyle.Exclamation, "Champ manquant")
+            txtNom.Focus()
+            Return
+        End If
+
+        ' ── Longueur maximale nom ──
+        If txtNom.Text.Trim().Length > 100 Then
+            MsgBox("Le nom du produit ne peut pas dépasser 100 caractères.",
+                   MsgBoxStyle.Exclamation, "Nom trop long")
+            txtNom.Focus()
+            Return
+        End If
+
+        ' ── Catégorie obligatoire ──
+        If String.IsNullOrWhiteSpace(cboCategorie.Text) Then
+            MsgBox("La catégorie est obligatoire.",
+                   MsgBoxStyle.Exclamation, "Champ manquant")
+            cboCategorie.Focus()
+            Return
+        End If
+
+        ' ── Prix obligatoire et valide ──
+        Dim prix As Decimal
+        If String.IsNullOrWhiteSpace(txtPrix.Text) Then
+            MsgBox("Le prix est obligatoire.",
+                   MsgBoxStyle.Exclamation, "Champ manquant")
+            txtPrix.Focus()
+            Return
+        End If
+
+        If Not Decimal.TryParse(txtPrix.Text, prix) OrElse prix <= 0 Then
+            MsgBox("Veuillez entrer un prix valide en FCFA supérieur à 0." & vbCrLf &
+                   "Exemple : 3500",
+                   MsgBoxStyle.Exclamation, "Prix invalide")
+            txtPrix.Focus()
+            Return
+        End If
+
+        If prix > 9999999 Then
+            MsgBox("Le prix semble trop élevé. Vérifiez la valeur saisie.",
+                   MsgBoxStyle.Exclamation, "Prix trop élevé")
+            txtPrix.Focus()
+            Return
+        End If
+
+        ' ── Seuil d'alerte obligatoire et valide ──
+        Dim seuil As Integer
+        If String.IsNullOrWhiteSpace(txtSeuilAlerte.Text) Then
+            MsgBox("Le seuil d'alerte est obligatoire.",
+                   MsgBoxStyle.Exclamation, "Champ manquant")
+            txtSeuilAlerte.Focus()
+            Return
+        End If
+
+        If Not Integer.TryParse(txtSeuilAlerte.Text, seuil) OrElse seuil < 0 Then
+            MsgBox("Le seuil d'alerte doit être un nombre entier positif." & vbCrLf &
+                   "Exemple : 5",
+                   MsgBoxStyle.Exclamation, "Seuil invalide")
+            txtSeuilAlerte.Focus()
+            Return
+        End If
+
+        ' ── Vérifier doublon nom produit ──
+        Dim idExclure As Integer = 0
+        If Not _modeAjout AndAlso _produitSelectionne IsNot Nothing Then
+            idExclure = _produitSelectionne.IdProduit
+        End If
+
+        If Mainframe.ProduitCtrl.NomExiste(txtNom.Text.Trim(), idExclure) Then
+            MsgBox("Un produit avec ce nom existe déjà." & vbCrLf &
+                   "Veuillez choisir un nom différent.",
+                   MsgBoxStyle.Exclamation, "Doublon détecté")
+            txtNom.Focus()
+            Return
+        End If
+
+        ' ── Construire l'objet ──
+        Dim p As New Produit()
+        p.Nom = txtNom.Text.Trim()
+        p.Categorie = cboCategorie.Text.Trim()
+        p.Description = txtDescription.Text.Trim()
+        p.Prix = prix
+        p.SeuilAlerte = seuil
+        p.Actif = tglActif.Checked
+
+        Try
+            If _modeAjout Then
+                p.StockActuel = 0
+                Mainframe.ProduitCtrl.AjouterProduit(p)
+                MsgBox($"Le produit ""{p.Nom}"" a été ajouté avec un stock initial de 0." & vbCrLf &
+                       "Utilisez le réapprovisionnement pour ajouter du stock.",
+                       MsgBoxStyle.Information, "Produit ajouté")
+                _modeAjout = False
+            Else
+                If _produitSelectionne Is Nothing Then Return
+                p.IdProduit = _produitSelectionne.IdProduit
+                p.StockActuel = _produitSelectionne.StockActuel
+                Mainframe.ProduitCtrl.ModifierProduit(p)
+                MsgBox($"Le produit ""{p.Nom}"" a été modifié avec succès.",
+                       MsgBoxStyle.Information, "Modification réussie")
+            End If
+
+            ChargerProduits()
+            ViderFiche()
+
+        Catch ex As Exception
+            MsgBox("Erreur lors de l'enregistrement : " & ex.Message,
+                   MsgBoxStyle.Critical, "Erreur")
+        End Try
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' BOUTON DÉSACTIVER / RÉACTIVER
+    ' ─────────────────────────────────────────────
+    Private Sub btnDesactiver_Click(sender As Object, e As EventArgs) _
+        Handles btnDesactiver.Click
+
+        If _produitSelectionne Is Nothing Then Return
+
+        If _produitSelectionne.Actif Then
+            Dim confirm = MsgBox($"Désactiver le produit ""{_produitSelectionne.Nom}"" ?" & vbCrLf &
+                                 "Il n'apparaîtra plus dans les factures.",
+                                 MsgBoxStyle.YesNo Or MsgBoxStyle.Question, "Désactivation")
+            If confirm = MsgBoxResult.Yes Then
+                Try
+                    Mainframe.ProduitCtrl.DesactiverProduit(_produitSelectionne.IdProduit)
+                    MsgBox("Le produit a été désactivé.", MsgBoxStyle.Information, "Succès")
+                    ChargerProduits()
+                    ViderFiche()
+                Catch ex As Exception
+                    MsgBox("Erreur : " & ex.Message, MsgBoxStyle.Critical, "Erreur")
+                End Try
+            End If
+        Else
+            Try
+                _produitSelectionne.Actif = True
+                Mainframe.ProduitCtrl.ModifierProduit(_produitSelectionne)
+                MsgBox($"Le produit ""{_produitSelectionne.Nom}"" a été réactivé.",
+                       MsgBoxStyle.Information, "Réactivation")
+                ChargerProduits()
+                ViderFiche()
+            Catch ex As Exception
+                MsgBox("Erreur : " & ex.Message, MsgBoxStyle.Critical, "Erreur")
+            End Try
+        End If
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' BOUTON ANNULER
+    ' ─────────────────────────────────────────────
+    Private Sub btnAnnuler_Click(sender As Object, e As EventArgs) _
+        Handles btnAnnuler.Click
+        _modeAjout = False
+        If _produitSelectionne IsNot Nothing Then
+            RemplirFiche(_produitSelectionne)
+        Else
+            ViderFiche()
+        End If
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' RECHERCHE EN TEMPS RÉEL
+    ' ─────────────────────────────────────────────
+    Private Sub txtRecherche_TextChanged(sender As Object, e As EventArgs) _
+        Handles txtRecherche.TextChanged
+        ChargerProduits()
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' FILTRE CATÉGORIE
+    ' ─────────────────────────────────────────────
+    Private Sub cboCategorieFiltre_SelectedIndexChanged(sender As Object, e As EventArgs) _
+        Handles cboCategorieFiltre.SelectedIndexChanged
+        ChargerProduits()
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' FILTRES STATUT
+    ' ─────────────────────────────────────────────
+    Private Sub btnFiltreAll_Click(sender As Object, e As EventArgs) Handles btnFiltreAll.Click
+        AfficherProduits(_tousProduits)
+        ResetBoutonsFiltres(btnFiltreAll)
+    End Sub
+
+    Private Sub btnFiltreActifs_Click(sender As Object, e As EventArgs) Handles btnFiltreActifs.Click
+        Dim filtres = _tousProduits.Where(Function(p) p.Actif AndAlso Not p.EnRupture).ToList()
+        AfficherProduits(filtres)
+        ResetBoutonsFiltres(btnFiltreActifs)
+    End Sub
+
+    Private Sub btnFiltreAlertes_Click(sender As Object, e As EventArgs) Handles btnFiltreAlertes.Click
+        Dim filtres = _tousProduits.Where(Function(p) p.EnAlerte OrElse p.EnRupture).ToList()
+        AfficherProduits(filtres)
+        ResetBoutonsFiltres(btnFiltreAlertes)
+    End Sub
+
+    Private Sub ResetBoutonsFiltres(btnActif As Guna2Button)
+        For Each btn In {btnFiltreAll, btnFiltreActifs, btnFiltreAlertes}
+            btn.FillColor = ColorTranslator.FromHtml("#F0DCE2")
+            btn.ForeColor = ColorTranslator.FromHtml("#C45A7E")
+        Next
+        btnActif.FillColor = ColorTranslator.FromHtml("#C45A7E")
+        btnActif.ForeColor = Color.White
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' VALIDATION SAISIE NUMÉRIQUE
+    ' ─────────────────────────────────────────────
+    Private Sub txtPrix_KeyPress(sender As Object, e As KeyPressEventArgs) _
+        Handles txtPrix.KeyPress
+        If Not Char.IsDigit(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) Then
+            e.Handled = True
+        End If
+    End Sub
+
+    Private Sub txtSeuilAlerte_KeyPress(sender As Object, e As KeyPressEventArgs) _
+        Handles txtSeuilAlerte.KeyPress
+        If Not Char.IsDigit(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) Then
+            e.Handled = True
+        End If
+    End Sub
+
+    Private Sub txtQteAjouter_KeyPress(sender As Object, e As KeyPressEventArgs) _
+        Handles txtQteAjouter.KeyPress
+        If Not Char.IsDigit(e.KeyChar) AndAlso Not Char.IsControl(e.KeyChar) Then
+            e.Handled = True
+        End If
+    End Sub
+
+End Class

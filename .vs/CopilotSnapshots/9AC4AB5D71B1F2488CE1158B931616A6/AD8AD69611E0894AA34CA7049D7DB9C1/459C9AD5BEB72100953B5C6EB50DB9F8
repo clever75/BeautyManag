@@ -1,0 +1,474 @@
+﻿' =====================================================
+' USERCONTROL RENDEZ-VOUS — Formulaire intégré
+' =====================================================
+Imports Guna.UI2.WinForms
+
+Public Class ucRendezVous
+
+    Private _tousRdv As New List(Of RendezVous)
+    Private _rdvSelectionne As RendezVous = Nothing
+    Private _modeAjout As Boolean = True
+    Private _dureeMinutes As Integer = 0
+    Private _listeClients As New List(Of Client)
+    Private _listeEmployes As New List(Of Employe)
+    Private _listePrestations As New List(Of Prestation)
+
+    Private Sub ucRendezVous_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        lblDate.Text = Date.Today.ToString("dddd dd MMMM yyyy",
+                       New System.Globalization.CultureInfo("fr-FR"))
+
+        ' Couleurs header dgv
+        dgvRdv.ThemeStyle.HeaderStyle.BackColor = ColorTranslator.FromHtml("#3D1A24")
+        dgvRdv.ThemeStyle.HeaderStyle.ForeColor = Color.White
+        dgvRdv.ThemeStyle.RowsStyle.SelectionBackColor = ColorTranslator.FromHtml("#FDE8EF")
+        dgvRdv.ThemeStyle.RowsStyle.SelectionForeColor = ColorTranslator.FromHtml("#3D1A24")
+
+        ' Charger icônes
+        Try
+            Dim pathEdit = Application.StartupPath & "\Resources\ic_edit.png"
+            Dim pathTrash = Application.StartupPath & "\Resources\ic_trash.png"
+            Dim pathCal = Application.StartupPath & "\Resources\ic_calendar.png"
+            If System.IO.File.Exists(pathEdit) Then
+                CType(dgvRdv.Columns("colModifier"), DataGridViewImageColumn).Image =
+                    Image.FromFile(pathEdit)
+            End If
+            If System.IO.File.Exists(pathTrash) Then
+                CType(dgvRdv.Columns("colSupprimer"), DataGridViewImageColumn).Image =
+                    Image.FromFile(pathTrash)
+            End If
+            If System.IO.File.Exists(pathCal) Then
+                PictureBox1.Image = Image.FromFile(pathCal)
+            End If
+        Catch
+        End Try
+
+        ChargerFiltres()
+        ChargerFormulaire()
+        ChargerRdv()
+        ViderFormulaire()
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' CHARGER LES FILTRES
+    ' ─────────────────────────────────────────────
+    Private Sub ChargerFiltres()
+        dtpDate.Value = Date.Today
+
+        cboEmploye.Items.Clear()
+        cboEmploye.Items.Add("Toutes")
+        Try
+            _listeEmployes = Mainframe.EmployeCtrl.GetEmployesActifs()
+            For Each emp In _listeEmployes
+                cboEmploye.Items.Add(emp.Prenom & " " & emp.Nom)
+            Next
+        Catch
+        End Try
+        cboEmploye.SelectedIndex = 0
+
+        cboStatut.Items.Clear()
+        cboStatut.Items.Add("Tous")
+        cboStatut.Items.Add("En attente")
+        cboStatut.Items.Add("Confirmé")
+        cboStatut.Items.Add("Terminé")
+        cboStatut.Items.Add("Annulé")
+        cboStatut.SelectedIndex = 0
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' CHARGER LE FORMULAIRE (ComboBox)
+    ' ─────────────────────────────────────────────
+    Private Sub ChargerFormulaire()
+        ' Clientes
+        Try
+            _listeClients = Mainframe.ClientCtrl.GetAllClients()
+            cboCliente.Items.Clear()
+            cboCliente.Items.Add("Sélectionner une cliente...")
+            For Each c In _listeClients
+                cboCliente.Items.Add(c.Prenom & " " & c.Nom & " | " & c.Telephone)
+            Next
+            cboCliente.SelectedIndex = 0
+        Catch
+        End Try
+
+        ' Employées
+        Try
+            cboEmployeForm.Items.Clear()
+            cboEmployeForm.Items.Add("Sélectionner une employée...")
+            For Each emp In _listeEmployes
+                cboEmployeForm.Items.Add(emp.Prenom & " " & emp.Nom)
+            Next
+            cboEmployeForm.SelectedIndex = 0
+        Catch
+        End Try
+
+        ' Prestations
+        Try
+            _listePrestations = Mainframe.PrestationCtrl.GetPrestationsActives()
+            cboPrestationForm.Items.Clear()
+            cboPrestationForm.Items.Add("Sélectionner une prestation...")
+            For Each p In _listePrestations
+                cboPrestationForm.Items.Add(p.Nom & " (" & p.DureeMinutes & " min)")
+            Next
+            cboPrestationForm.SelectedIndex = 0
+        Catch
+        End Try
+
+        ' Statuts
+        cboStatutForm.Items.Clear()
+        cboStatutForm.Items.Add("En attente")
+        cboStatutForm.Items.Add("Confirmé")
+        cboStatutForm.Items.Add("Terminé")
+        cboStatutForm.Items.Add("Annulé")
+        cboStatutForm.SelectedIndex = 0
+
+        dtpDebut.Value = DateTime.Now
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' CHARGER LES RDV
+    ' ─────────────────────────────────────────────
+    Private Sub ChargerRdv()
+        Try
+            dgvRdv.Rows.Clear()
+            _tousRdv = Mainframe.RendezVousCtrl.GetRdvByDate(dtpDate.Value)
+            Dim liste = FiltrerRdv()
+            AfficherRdv(liste)
+            MettreAJourStats(liste)
+        Catch ex As Exception
+            MsgBox("Erreur chargement RDV : " & ex.Message, MsgBoxStyle.Critical, "Erreur")
+        End Try
+    End Sub
+
+    Private Function FiltrerRdv() As List(Of RendezVous)
+        Dim liste = _tousRdv.ToList()
+
+        If cboEmploye.SelectedIndex > 0 Then
+            Dim idEmp = _listeEmployes(cboEmploye.SelectedIndex - 1).IdEmploye
+            Dim temp As New List(Of RendezVous)
+            For Each r In liste
+                If r.IdEmploye = idEmp Then temp.Add(r)
+            Next
+            liste = temp
+        End If
+
+        If cboStatut.SelectedIndex > 0 Then
+            Dim statut = cboStatut.SelectedItem.ToString()
+            Dim temp As New List(Of RendezVous)
+            For Each r In liste
+                If r.Statut = statut Then temp.Add(r)
+            Next
+            liste = temp
+        End If
+
+        Return liste
+    End Function
+
+    Private Sub AfficherRdv(liste As List(Of RendezVous))
+        dgvRdv.Rows.Clear()
+
+        For Each rdv In liste
+            Dim nomCliente = "—"
+            Dim nomPrestation = "—"
+            Dim nomEmploye = "—"
+
+            Try
+                Dim c = Mainframe.ClientCtrl.GetClientById(rdv.IdClient)
+                If c IsNot Nothing Then nomCliente = c.Prenom & " " & c.Nom
+            Catch
+            End Try
+            Try
+                Dim p = Mainframe.PrestationCtrl.GetPrestationById(rdv.IdPrestation)
+                If p IsNot Nothing Then nomPrestation = p.Nom
+            Catch
+            End Try
+            Try
+                Dim emp = Mainframe.EmployeCtrl.GetEmployeById(rdv.IdEmploye)
+                If emp IsNot Nothing Then nomEmploye = emp.Prenom & " " & emp.Nom
+            Catch
+            End Try
+
+            Dim heure = rdv.DateHeureDebut.ToString("HH:mm") & " – " &
+                        rdv.DateHeureFin.ToString("HH:mm")
+
+            Dim index = dgvRdv.Rows.Add(nomCliente, heure, nomPrestation,
+                                         nomEmploye, rdv.Statut, Nothing, Nothing)
+            dgvRdv.Rows(index).Tag = rdv
+
+            Select Case rdv.Statut
+                Case "Confirmé"
+                    dgvRdv.Rows(index).DefaultCellStyle.ForeColor =
+                        ColorTranslator.FromHtml("#0F6E56")
+                Case "Annulé"
+                    dgvRdv.Rows(index).DefaultCellStyle.ForeColor =
+                        ColorTranslator.FromHtml("#A32D2D")
+                    dgvRdv.Rows(index).DefaultCellStyle.BackColor =
+                        ColorTranslator.FromHtml("#FCEBEB")
+                Case "Terminé"
+                    dgvRdv.Rows(index).DefaultCellStyle.ForeColor =
+                        ColorTranslator.FromHtml("#A07080")
+            End Select
+        Next
+
+        dgvRdv.ClearSelection()
+    End Sub
+
+    Private Sub MettreAJourStats(liste As List(Of RendezVous))
+        lblStatVal1.Text = liste.Count.ToString()
+        Dim nbConfirmes = 0
+        Dim nbAttente = 0
+        For Each r In liste
+            If r.Statut = "Confirmé" Then nbConfirmes += 1
+            If r.Statut = "En attente" Then nbAttente += 1
+        Next
+        lblStatVal2.Text = nbConfirmes.ToString()
+        lblStatVal3.Text = nbAttente.ToString()
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' FILTRES
+    ' ─────────────────────────────────────────────
+    Private Sub dtpDate_ValueChanged(sender As Object, e As EventArgs) _
+        Handles dtpDate.ValueChanged
+        ChargerRdv()
+    End Sub
+
+    Private Sub cboEmploye_SelectedIndexChanged(sender As Object, e As EventArgs) _
+        Handles cboEmploye.SelectedIndexChanged
+        If _tousRdv.Count = 0 Then Return
+        Dim liste = FiltrerRdv()
+        AfficherRdv(liste)
+        MettreAJourStats(liste)
+    End Sub
+
+    Private Sub cboStatut_SelectedIndexChanged(sender As Object, e As EventArgs) _
+        Handles cboStatut.SelectedIndexChanged
+        If _tousRdv.Count = 0 Then Return
+        Dim liste = FiltrerRdv()
+        AfficherRdv(liste)
+        MettreAJourStats(liste)
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' NOUVEAU RDV
+    ' ─────────────────────────────────────────────
+    Private Sub btnNouveauRdv_Click(sender As Object, e As EventArgs) _
+        Handles btnNouveauRdv.Click
+        ViderFormulaire()
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' CLIC SUR CELLULE — Modifier ou Supprimer
+    ' ─────────────────────────────────────────────
+    Private Sub dgvRdv_CellClick(sender As Object, e As DataGridViewCellEventArgs) _
+        Handles dgvRdv.CellClick
+
+        If e.RowIndex < 0 Then Return
+        Dim rdv = TryCast(dgvRdv.Rows(e.RowIndex).Tag, RendezVous)
+        If rdv Is Nothing Then Return
+
+        If e.ColumnIndex = dgvRdv.Columns("colModifier").Index Then
+            RemplirFormulaire(rdv)
+        End If
+
+        If e.ColumnIndex = dgvRdv.Columns("colSupprimer").Index Then
+            Dim rep = MsgBox("Supprimer ce rendez-vous ?",
+                             MsgBoxStyle.YesNo Or MsgBoxStyle.Question, "Confirmation")
+            If rep = MsgBoxResult.No Then Return
+            Try
+                Mainframe.RendezVousCtrl.SupprimerRdv(rdv.IdRdv)
+                MsgBox("Rendez-vous supprimé.", MsgBoxStyle.Information, "Succès")
+                ChargerRdv()
+                ViderFormulaire()
+            Catch ex As Exception
+                MsgBox("Erreur : " & ex.Message, MsgBoxStyle.Critical, "Erreur")
+            End Try
+        End If
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' REMPLIR FORMULAIRE POUR MODIFICATION
+    ' ─────────────────────────────────────────────
+    Private Sub RemplirFormulaire(rdv As RendezVous)
+        _rdvSelectionne = rdv
+        _modeAjout = False
+
+        lblTitreForm.Text = "Modifier le rendez-vous"
+        lblSousTitreForm.Text = "Modifiez les informations"
+
+
+        cboStatutForm.Items.Clear()
+        cboStatutForm.Items.Add("En attente")
+        cboStatutForm.Items.Add("Confirmé")
+        cboStatutForm.Items.Add("Terminé")
+        cboStatutForm.Items.Add("Annulé")
+
+        For i = 0 To _listeClients.Count - 1
+            If _listeClients(i).IdClient = rdv.IdClient Then
+                cboCliente.SelectedIndex = i + 1 : Exit For
+            End If
+        Next
+        For i = 0 To _listeEmployes.Count - 1
+            If _listeEmployes(i).IdEmploye = rdv.IdEmploye Then
+                cboEmployeForm.SelectedIndex = i + 1 : Exit For
+            End If
+        Next
+        For i = 0 To _listePrestations.Count - 1
+            If _listePrestations(i).IdPrestation = rdv.IdPrestation Then
+                cboPrestationForm.SelectedIndex = i + 1 : Exit For
+            End If
+        Next
+
+        dtpDebut.Value = rdv.DateHeureDebut
+        cboStatutForm.SelectedItem = rdv.Statut
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' VIDER FORMULAIRE
+    ' ─────────────────────────────────────────────
+    Private Sub ViderFormulaire()
+        _rdvSelectionne = Nothing
+        _modeAjout = True
+        _dureeMinutes = 0
+
+        lblTitreForm.Text = "Nouveau rendez-vous"
+        lblSousTitreForm.Text = "Remplissez les informations"
+
+
+        cboStatutForm.Items.Clear()
+        cboStatutForm.Items.Add("En attente")
+        cboStatutForm.Items.Add("Confirmé")
+        cboStatutForm.SelectedIndex = 0
+
+        cboCliente.SelectedIndex = 0
+        cboEmployeForm.SelectedIndex = 0
+        cboPrestationForm.SelectedIndex = 0
+        dtpDebut.Value = DateTime.Now
+        txtHeureFin.Text = ""
+        lblDureeInfo.Text = "Sélectionnez une prestation"
+        lblConflitAvertissement.Visible = False
+
+        dgvRdv.ClearSelection()
+    End Sub
+
+    Private Sub btnVider_Click(sender As Object, e As EventArgs) _
+        Handles btnVider.Click
+        ViderFormulaire()
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' CALCUL HEURE DE FIN
+    ' ─────────────────────────────────────────────
+    Private Sub cboPrestationForm_SelectedIndexChanged(sender As Object, e As EventArgs) _
+        Handles cboPrestationForm.SelectedIndexChanged
+
+        If cboPrestationForm.SelectedIndex <= 0 Then
+            lblDureeInfo.Text = "Sélectionnez une prestation"
+            txtHeureFin.Text = ""
+            _dureeMinutes = 0
+            Return
+        End If
+
+        Dim p = _listePrestations(cboPrestationForm.SelectedIndex - 1)
+        _dureeMinutes = p.DureeMinutes
+        CalculerHeureFin()
+        lblDureeInfo.Text = "Durée : " & _dureeMinutes & " min — fin calculée automatiquement"
+        VerifierConflitVisuel()
+    End Sub
+
+    Private Sub dtpDebut_ValueChanged(sender As Object, e As EventArgs) _
+        Handles dtpDebut.ValueChanged
+        CalculerHeureFin()
+        VerifierConflitVisuel()
+    End Sub
+
+    Private Sub CalculerHeureFin()
+        If _dureeMinutes <= 0 Then Return
+        txtHeureFin.Text = dtpDebut.Value.AddMinutes(_dureeMinutes).ToString("HH:mm")
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' VÉRIFICATION CONFLIT
+    ' ─────────────────────────────────────────────
+    Private Sub cboEmployeForm_SelectedIndexChanged(sender As Object, e As EventArgs) _
+        Handles cboEmployeForm.SelectedIndexChanged
+        VerifierConflitVisuel()
+    End Sub
+
+    Private Sub VerifierConflitVisuel()
+        lblConflitAvertissement.Visible = False
+        If cboEmployeForm.SelectedIndex <= 0 OrElse _dureeMinutes <= 0 Then Return
+
+        Try
+            Dim emp = _listeEmployes(cboEmployeForm.SelectedIndex - 1)
+            Dim debut = dtpDebut.Value
+            Dim fin = debut.AddMinutes(_dureeMinutes)
+            Dim idExclure = If(_modeAjout, 0, _rdvSelectionne.IdRdv)
+
+            If Mainframe.RendezVousCtrl.VerifierConflit(emp.IdEmploye, debut, fin, idExclure) Then
+                lblConflitAvertissement.Text = "  Attention : " & emp.Prenom &
+                                               " a déjà un RDV sur ce créneau !"
+                lblConflitAvertissement.Visible = True
+            End If
+        Catch
+        End Try
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' ENREGISTRER
+    ' ─────────────────────────────────────────────
+    Private Sub btnEnregistrerRdv_Click(sender As Object, e As EventArgs) _
+        Handles btnEnregistrerRdv.Click
+
+        If cboCliente.SelectedIndex <= 0 Then
+            MsgBox("Veuillez sélectionner une cliente.", MsgBoxStyle.Exclamation, "Champ manquant")
+            Return
+        End If
+        If cboEmployeForm.SelectedIndex <= 0 Then
+            MsgBox("Veuillez sélectionner une employée.", MsgBoxStyle.Exclamation, "Champ manquant")
+            Return
+        End If
+        If cboPrestationForm.SelectedIndex <= 0 Then
+            MsgBox("Veuillez sélectionner une prestation.", MsgBoxStyle.Exclamation, "Champ manquant")
+            Return
+        End If
+        If dtpDebut.Value < DateTime.Now.AddMinutes(-10) AndAlso _modeAjout Then
+            Dim rep = MsgBox("La date choisie est dans le passé. Continuer quand même ?",
+                             MsgBoxStyle.YesNo Or MsgBoxStyle.Question, "Date passée")
+            If rep = MsgBoxResult.No Then Return
+        End If
+
+        Dim rdv As New RendezVous()
+        rdv.IdClient = _listeClients(cboCliente.SelectedIndex - 1).IdClient
+        rdv.IdEmploye = _listeEmployes(cboEmployeForm.SelectedIndex - 1).IdEmploye
+        rdv.IdPrestation = _listePrestations(cboPrestationForm.SelectedIndex - 1).IdPrestation
+        rdv.DateHeureDebut = dtpDebut.Value
+        rdv.DateHeureFin = dtpDebut.Value.AddMinutes(_dureeMinutes)
+        rdv.Statut = If(cboStatutForm.SelectedIndex >= 0,
+                        cboStatutForm.SelectedItem.ToString(), "En attente")
+
+        Try
+            If _modeAjout Then
+                Mainframe.RendezVousCtrl.AjouterRdv(rdv)
+                MsgBox("Rendez-vous ajouté avec succès.", MsgBoxStyle.Information, "Succès")
+            Else
+                rdv.IdRdv = _rdvSelectionne.IdRdv
+                Mainframe.RendezVousCtrl.ModifierRdv(rdv)
+                MsgBox("Rendez-vous modifié avec succès.", MsgBoxStyle.Information, "Modification")
+            End If
+
+            ChargerRdv()
+            ViderFormulaire()
+
+        Catch ex As Exception
+            MsgBox("Erreur : " & ex.Message, MsgBoxStyle.Critical, "Erreur")
+        End Try
+    End Sub
+
+    Private Sub Label1_Click(sender As Object, e As EventArgs) Handles Label1.Click
+
+    End Sub
+
+    Private Sub txtHeureFin_TextChanged(sender As Object, e As EventArgs) Handles txtHeureFin.TextChanged
+
+    End Sub
+End Class

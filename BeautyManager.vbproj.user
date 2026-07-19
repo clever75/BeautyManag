@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup />
+  <ItemGroup>
+    <Compile Update="Views\frmLogin.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Views\frmPrestation.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Views\frmRdv.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Views\Mainframe.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Views\ucClients.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Views\ucDashboard.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Views\ucEmployes.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Views\ucFacture.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Views\ucPrestations.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Views\ucProduits.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Views\ucRendezVous.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+  </ItemGroup>
+</Project>

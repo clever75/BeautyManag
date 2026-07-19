@@ -1,0 +1,355 @@
+﻿' =====================================================
+' USERCONTROL EMPLOYES
+' =====================================================
+Imports Guna.UI2.WinForms
+Imports System.Text.RegularExpressions
+
+Public Class ucEmployes
+
+    Private _employeSelectionne As Employe = Nothing
+    Private _modeAjout As Boolean = False
+    Private _filtreCourant As String = "Tous"
+
+    ' ─────────────────────────────────────────────
+    ' CHARGEMENT
+    ' ─────────────────────────────────────────────
+    Private Sub ucEmployes_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
+        lblDate.Text = Date.Today.ToString("dddd dd MMMM yyyy",
+                       New System.Globalization.CultureInfo("fr-FR"))
+        ViderFiche()
+        ChargerEmployes()
+        dgvEmployes.ClearSelection()
+        pnlFiche.Visible = False
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' CHARGER LA LISTE
+    ' ─────────────────────────────────────────────
+    Private Sub ChargerEmployes()
+        Try
+            ' S'assurer que les colonnes existent avant d'ajouter des lignes.
+            If dgvEmployes.Columns.Count = 0 Then
+                dgvEmployes.Columns.Add("colNom", "Employé")
+                dgvEmployes.Columns.Add("colSpec", "Spécialité")
+                dgvEmployes.Columns.Add("colStatut", "Statut")
+            End If
+
+            dgvEmployes.Rows.Clear()
+
+            Dim liste As List(Of Employe)
+
+            Select Case _filtreCourant
+                Case "Actifs"
+                    liste = Mainframe.EmployeCtrl.GetEmployesActifs()
+                Case "Inactifs"
+                    liste = Mainframe.EmployeCtrl.GetAllEmployes().
+                            Where(Function(emp) Not emp.Actif).ToList()
+                Case Else
+                    liste = Mainframe.EmployeCtrl.GetAllEmployes()
+            End Select
+
+            ' Filtrer par recherche
+            If Not String.IsNullOrWhiteSpace(txtRecherche.Text) Then
+                liste = liste.Where(Function(emp)
+                                        Return emp.Nom.ToLower.Contains(txtRecherche.Text.ToLower) OrElse
+                                               emp.Prenom.ToLower.Contains(txtRecherche.Text.ToLower)
+                                    End Function).ToList()
+            End If
+
+            ' Message si liste vide
+            If liste.Count = 0 Then
+                lblSousTitre.Text = "Aucun résultat trouvé"
+            Else
+                lblSousTitre.Text = liste.Count & " employé(s)"
+            End If
+
+            For Each emp In liste
+                Dim index = dgvEmployes.Rows.Add(
+    emp.Prenom & " " & emp.Nom,
+    If(String.IsNullOrEmpty(emp.Specialite), "—", emp.Specialite),
+    If(emp.Actif, "Actif", "Inactif")
+)
+
+                dgvEmployes.Rows(index).Tag = emp
+
+
+
+                ' Colorier la cellule statut
+                If emp.Actif Then
+                    dgvEmployes.Rows(index).Cells("colStatut").Style.ForeColor =
+                        ColorTranslator.FromHtml("#0F6E56")
+                    dgvEmployes.Rows(index).Cells("colStatut").Style.BackColor =
+                        ColorTranslator.FromHtml("#E1F5EE")
+                Else
+                    dgvEmployes.Rows(index).Cells("colStatut").Style.ForeColor =
+                        ColorTranslator.FromHtml("#854F0B")
+                    dgvEmployes.Rows(index).Cells("colStatut").Style.BackColor =
+                        ColorTranslator.FromHtml("#FEF5E7")
+                End If
+            Next
+
+            dgvEmployes.ClearSelection()
+
+        Catch ex As Exception
+            MsgBox("Erreur chargement employés : " & ex.Message, MsgBoxStyle.Critical, "Erreur")
+        End Try
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' SÉLECTION D'UN EMPLOYÉ
+    ' ─────────────────────────────────────────────
+    Private Sub dgvEmployes_SelectionChanged(sender As Object, e As EventArgs) _
+        Handles dgvEmployes.SelectionChanged
+
+        If dgvEmployes.SelectedRows.Count = 0 Then Return
+        If Not Me.IsHandleCreated Then Return
+
+        Dim row = dgvEmployes.SelectedRows(0)
+        If row.Tag Is Nothing Then Return
+
+        Dim emp = TryCast(row.Tag, Employe)
+        If emp Is Nothing Then Return
+
+        _employeSelectionne = emp
+        _modeAjout = False
+        RemplirFiche(emp)
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' REMPLIR LA FICHE
+    ' ─────────────────────────────────────────────
+    Private Sub RemplirFiche(emp As Employe)
+        If emp Is Nothing Then Return
+        pnlFiche.Visible = True
+        lblNomEmploye.Text = emp.Prenom & " " & emp.Nom
+        lblSpecEmploye.Text = If(String.IsNullOrEmpty(emp.Specialite), "", emp.Specialite)
+
+        txtNom.Text = emp.Nom
+        txtPrenom.Text = emp.Prenom
+        txtSpecialite.Text = If(String.IsNullOrEmpty(emp.Specialite), "", emp.Specialite)
+
+
+        If emp.Actif Then
+            btnDesactiver.Text = "Désactiver"
+            btnDesactiver.FillColor = ColorTranslator.FromHtml("#FEF5E7")
+            btnDesactiver.ForeColor = ColorTranslator.FromHtml("#854F0B")
+        Else
+            btnDesactiver.Text = "Réactiver"
+            btnDesactiver.FillColor = ColorTranslator.FromHtml("#E1F5EE")
+            btnDesactiver.ForeColor = ColorTranslator.FromHtml("#0F6E56")
+        End If
+
+        btnEnregistrer.Enabled = True
+        btnDesactiver.Enabled = True
+    End Sub
+    ' ─────────────────────────────────────────────
+    ' VIDER LA FICHE
+    ' ─────────────────────────────────────────────
+    Private Sub ViderFiche()
+        lblNomEmploye.Text = "Sélectionner un employé"
+        lblSpecEmploye.Text = ""
+        txtNom.Text = ""
+        txtPrenom.Text = ""
+        txtSpecialite.Text = ""
+        btnEnregistrer.Enabled = False
+        btnDesactiver.Enabled = False
+        _employeSelectionne = Nothing
+    End Sub
+
+
+
+    ' ─────────────────────────────────────────────
+    ' RECHERCHE EN TEMPS RÉEL
+    ' ─────────────────────────────────────────────
+    Private Sub txtRecherche_TextChanged(sender As Object, e As EventArgs) _
+    Handles txtRecherche.TextChanged
+        ChargerEmployes()
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' FILTRES
+    ' ─────────────────────────────────────────────
+    Private Sub ActiverFiltre(btnActif As Guna2Button, filtre As String)
+        btnFiltreAll.FillColor = ColorTranslator.FromHtml("#FDE8EF")
+        btnFiltreAll.ForeColor = ColorTranslator.FromHtml("#C45A7E")
+        btnFiltreActifs.FillColor = ColorTranslator.FromHtml("#E1F5EE")
+        btnFiltreActifs.ForeColor = ColorTranslator.FromHtml("#0F6E56")
+        btnFiltreInactifs.FillColor = ColorTranslator.FromHtml("#FEF5E7")
+        btnFiltreInactifs.ForeColor = ColorTranslator.FromHtml("#854F0B")
+
+        btnActif.FillColor = ColorTranslator.FromHtml("#C45A7E")
+        btnActif.ForeColor = Color.White
+        _filtreCourant = filtre
+        ChargerEmployes()
+    End Sub
+
+    Private Sub btnFiltreAll_Click(s As Object, e As EventArgs) Handles btnFiltreAll.Click
+        ActiverFiltre(btnFiltreAll, "Tous")
+    End Sub
+
+    Private Sub btnFiltreActifs_Click(s As Object, e As EventArgs) Handles btnFiltreActifs.Click
+        ActiverFiltre(btnFiltreActifs, "Actifs")
+    End Sub
+
+    Private Sub btnFiltreInactifs_Click(s As Object, e As EventArgs) Handles btnFiltreInactifs.Click
+        ActiverFiltre(btnFiltreInactifs, "Inactifs")
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' BOUTON AJOUTER EMPLOYÉ
+    ' ─────────────────────────────────────────────
+    Private Sub btnAjouterEmploye_Click(sender As Object, e As EventArgs) _
+        Handles btnAjouterEmploye.Click
+        _modeAjout = True
+        _employeSelectionne = Nothing
+        dgvEmployes.ClearSelection()
+        ViderFiche()
+        pnlFiche.Visible = True
+        lblNomEmploye.Text = "Nouvel employé"
+        btnEnregistrer.Enabled = True
+        btnDesactiver.Enabled = False
+        txtNom.Focus()
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' BOUTON ENREGISTRER
+    ' ─────────────────────────────────────────────
+    Private Sub btnEnregistrer_Click(sender As Object, e As EventArgs) _
+        Handles btnEnregistrer.Click
+
+        ' ── Nom obligatoire ──
+        If String.IsNullOrWhiteSpace(txtNom.Text) Then
+            MsgBox("Le nom est obligatoire.", MsgBoxStyle.Exclamation, "Champ manquant")
+            txtNom.Focus()
+            Return
+        End If
+
+        ' ── Prénom obligatoire ──
+        If String.IsNullOrWhiteSpace(txtPrenom.Text) Then
+            MsgBox("Le prénom est obligatoire.", MsgBoxStyle.Exclamation, "Champ manquant")
+            txtPrenom.Focus()
+            Return
+        End If
+
+        ' ── Longueur maximale ──
+        If txtNom.Text.Trim().Length > 50 Then
+            MsgBox("Le nom ne peut pas dépasser 50 caractères.",
+                   MsgBoxStyle.Exclamation, "Nom trop long")
+            txtNom.Focus()
+            Return
+        End If
+
+        If txtPrenom.Text.Trim().Length > 50 Then
+            MsgBox("Le prénom ne peut pas dépasser 50 caractères.",
+                   MsgBoxStyle.Exclamation, "Prénom trop long")
+            txtPrenom.Focus()
+            Return
+        End If
+
+        ' ── Nom : lettres seulement ──
+        If Not Regex.IsMatch(txtNom.Text.Trim(), "^[a-zA-ZÀ-ÿ\s\-']+$") Then
+            MsgBox("Le nom ne doit contenir que des lettres." & vbCrLf & "Exemple : Amewonu",
+                   MsgBoxStyle.Exclamation, "Nom invalide")
+            txtNom.Focus()
+            Return
+        End If
+
+        ' ── Prénom : lettres seulement ──
+        If Not Regex.IsMatch(txtPrenom.Text.Trim(), "^[a-zA-ZÀ-ÿ\s\-']+$") Then
+            MsgBox("Le prénom ne doit contenir que des lettres." & vbCrLf & "Exemple : Sophie",
+                   MsgBoxStyle.Exclamation, "Prénom invalide")
+            txtPrenom.Focus()
+            Return
+        End If
+
+
+
+
+        ' ── Vérifier doublon nom + prénom ──
+        Dim idExclure As Integer = If(_modeAjout, 0, _employeSelectionne.IdEmploye)
+        If Mainframe.EmployeCtrl.NomPrenomExiste(txtNom.Text.Trim(),
+                                                  txtPrenom.Text.Trim(),
+                                                  idExclure) Then
+            MsgBox("Un employé avec ce nom et prénom existe déjà.",
+                   MsgBoxStyle.Exclamation, "Doublon détecté")
+            txtNom.Focus()
+            Return
+        End If
+
+        ' ── Construire l'objet ──
+        Dim emp As New Employe()
+        emp.Nom = txtNom.Text.Trim()
+        emp.Prenom = txtPrenom.Text.Trim()
+        emp.Specialite = If(String.IsNullOrWhiteSpace(txtSpecialite.Text), "", txtSpecialite.Text.Trim())
+        emp.Actif = True
+
+        Try
+            If _modeAjout Then
+                Mainframe.EmployeCtrl.AjouterEmploye(emp)
+                MsgBox("L'employée " & emp.Prenom & " " & emp.Nom & " a été ajoutée avec succès.",
+                       MsgBoxStyle.Information, "Succès")
+            Else
+                If _employeSelectionne Is Nothing Then Return
+                emp.IdEmploye = _employeSelectionne.IdEmploye
+                Mainframe.EmployeCtrl.ModifierEmploye(emp)
+                MsgBox("Les informations de " & emp.Prenom & " " & emp.Nom & " ont été modifiées.",
+                       MsgBoxStyle.Information, "Modification réussie")
+            End If
+
+            ChargerEmployes()
+            ViderFiche()
+
+        Catch ex As Exception
+            MsgBox("Erreur lors de l'enregistrement : " & ex.Message,
+                   MsgBoxStyle.Critical, "Erreur")
+        End Try
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' BOUTON DÉSACTIVER / RÉACTIVER
+    ' ─────────────────────────────────────────────
+    Private Sub btnDesactiver_Click(sender As Object, e As EventArgs) _
+        Handles btnDesactiver.Click
+
+        If _employeSelectionne Is Nothing Then Return
+
+        Dim action = If(_employeSelectionne.Actif, "désactiver", "réactiver")
+        Dim rep = MsgBox("Voulez-vous " & action & " " &
+                         _employeSelectionne.Prenom & " " &
+                         _employeSelectionne.Nom & " ?",
+                         MsgBoxStyle.YesNo Or MsgBoxStyle.Question, "Confirmer")
+
+        If rep = MsgBoxResult.Yes Then
+            Try
+                If _employeSelectionne.Actif Then
+                    Mainframe.EmployeCtrl.DesactiverEmploye(_employeSelectionne.IdEmploye)
+                Else
+                    _employeSelectionne.Actif = True
+                    Mainframe.EmployeCtrl.ModifierEmploye(_employeSelectionne)
+                End If
+                ChargerEmployes()
+                ViderFiche()
+            Catch ex As Exception
+                MsgBox("Erreur : " & ex.Message, MsgBoxStyle.Critical, "Erreur")
+            End Try
+        End If
+    End Sub
+
+    ' ─────────────────────────────────────────────
+    ' BOUTON ANNULER
+    ' ─────────────────────────────────────────────
+    Private Sub btnAnnuler_Click(sender As Object, e As EventArgs) _
+        Handles btnAnnuler.Click
+        _modeAjout = False
+        If _employeSelectionne IsNot Nothing Then
+            RemplirFiche(_employeSelectionne)
+        Else
+            ViderFiche()
+        End If
+    End Sub
+
+    Private Sub pnlRecherche_Paint(sender As Object, e As PaintEventArgs)
+
+    End Sub
+End Class

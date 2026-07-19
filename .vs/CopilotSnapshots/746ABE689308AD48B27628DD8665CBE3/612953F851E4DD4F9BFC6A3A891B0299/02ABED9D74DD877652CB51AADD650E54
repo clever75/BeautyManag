@@ -1,0 +1,132 @@
+﻿' =====================================================
+' CONTROLLER EMPLOYE
+' =====================================================
+Imports MySql.Data
+Imports MySql.Data.MySqlClient
+
+Public Class EmployeController
+
+    ' ─────────────────────────────────────────────
+    ' LIRE TOUS LES EMPLOYÉS
+    ' ─────────────────────────────────────────────
+    Public Function GetAllEmployes() As List(Of Employe)
+        Dim liste As New List(Of Employe)
+
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim cmd As New MySqlCommand("SELECT * FROM employe ORDER BY idEmploye DESC", conn)
+            Dim reader = cmd.ExecuteReader()
+
+            While reader.Read()
+                liste.Add(LireEmploye(reader))
+            End While
+        End Using
+
+        Return liste
+    End Function
+
+    ' ─────────────────────────────────────────────
+    ' LIRE UNIQUEMENT LES EMPLOYÉS ACTIFS
+    ' ─────────────────────────────────────────────
+    Public Function GetEmployesActifs() As List(Of Employe)
+        Dim liste As New List(Of Employe)
+
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim cmd As New MySqlCommand("SELECT * FROM employe WHERE actif = TRUE ORDER BY nom", conn)
+            Dim reader = cmd.ExecuteReader()
+
+            While reader.Read()
+                liste.Add(LireEmploye(reader))
+            End While
+        End Using
+
+        Return liste
+    End Function
+
+    ' ─────────────────────────────────────────────
+    ' DÉSACTIVER UN EMPLOYÉ (pas supprimer)
+    ' ─────────────────────────────────────────────
+    Public Sub DesactiverEmploye(id As Integer)
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim cmd As New MySqlCommand("UPDATE employe SET actif = FALSE WHERE idEmploye = @id", conn)
+            cmd.Parameters.AddWithValue("@id", id)
+            cmd.ExecuteNonQuery()
+        End Using
+    End Sub
+
+
+    Public Function NomPrenomExiste(nom As String, prenom As String, idExclure As Integer) As Boolean
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim sql = "SELECT COUNT(*) FROM employe WHERE nom = @nom AND prenom = @prenom AND idEmploye <> @id"
+            Using cmd As New MySqlClient.MySqlCommand(sql, conn)
+                cmd.Parameters.AddWithValue("@nom", nom)
+                cmd.Parameters.AddWithValue("@prenom", prenom)
+                cmd.Parameters.AddWithValue("@id", idExclure)
+                Return Convert.ToInt32(cmd.ExecuteScalar()) > 0
+            End Using
+        End Using
+    End Function
+    Public Function GetEmployeById(id As Integer) As Employe
+        Try
+            Using conn = DBConnexion.GetConnexion()
+                conn.Open()
+                Dim sql = "SELECT * FROM employe WHERE idEmploye = @id"
+                Using cmd As New MySqlClient.MySqlCommand(sql, conn)
+                    cmd.Parameters.AddWithValue("@id", id)
+                    Dim reader = cmd.ExecuteReader()
+                    If reader.Read() Then
+                        Dim emp As New Employe()
+                        emp.IdEmploye = reader.GetInt32("idEmploye")
+                        emp.Nom = reader.GetString("nom")
+                        emp.Prenom = reader.GetString("prenom")
+                        Return emp
+                    End If
+                End Using
+            End Using
+        Catch
+        End Try
+        Return Nothing
+    End Function
+
+    Public Sub AjouterEmploye(emp As Employe)
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim sql = "INSERT INTO employe (nom, prenom, specialite, actif)
+                   VALUES (@nom, @prenom, @specialite, @actif)"
+            Dim cmd As New MySqlCommand(sql, conn)
+            cmd.Parameters.AddWithValue("@nom", emp.Nom)
+            cmd.Parameters.AddWithValue("@prenom", emp.Prenom)
+            cmd.Parameters.AddWithValue("@specialite", If(emp.Specialite = "", DBNull.Value, emp.Specialite))
+            cmd.Parameters.AddWithValue("@actif", emp.Actif)
+            cmd.ExecuteNonQuery()
+        End Using
+    End Sub
+
+    Public Sub ModifierEmploye(emp As Employe)
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim sql = "UPDATE employe SET nom=@nom, prenom=@prenom, specialite=@specialite,
+                   actif=@actif WHERE idEmploye=@id"
+            Dim cmd As New MySqlCommand(sql, conn)
+            cmd.Parameters.AddWithValue("@nom", emp.Nom)
+            cmd.Parameters.AddWithValue("@prenom", emp.Prenom)
+            cmd.Parameters.AddWithValue("@specialite", If(emp.Specialite = "", DBNull.Value, emp.Specialite))
+            cmd.Parameters.AddWithValue("@actif", emp.Actif)
+            cmd.Parameters.AddWithValue("@id", emp.IdEmploye)
+            cmd.ExecuteNonQuery()
+        End Using
+    End Sub
+
+    Private Function LireEmploye(reader As MySqlDataReader) As Employe
+        Dim emp As New Employe()
+        emp.IdEmploye = reader.GetInt32("idEmploye")
+        emp.Nom = reader.GetString("nom")
+        emp.Prenom = reader.GetString("prenom")
+        emp.Specialite = If(reader.IsDBNull(reader.GetOrdinal("specialite")), "", reader.GetString("specialite"))
+        emp.Actif = reader.GetBoolean("actif")
+        Return emp
+    End Function
+End Class

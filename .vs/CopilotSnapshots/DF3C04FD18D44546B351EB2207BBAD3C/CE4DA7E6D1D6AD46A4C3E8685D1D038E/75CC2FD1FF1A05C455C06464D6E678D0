@@ -1,0 +1,52 @@
+﻿Imports System.Windows.Forms
+
+Public Module ControlHelpers
+    Public Sub RecreateComboBox(oldCb As ComboBox)
+        If oldCb Is Nothing Then Return
+        Dim parent = oldCb.Parent
+        If parent Is Nothing Then Return
+
+        If oldCb.InvokeRequired Then
+            oldCb.Invoke(Sub() RecreateComboBox(oldCb))
+            Return
+        End If
+
+        Dim idx = parent.Controls.GetChildIndex(oldCb)
+        Dim newCb As New ComboBox() With {
+            .Name = oldCb.Name,
+            .Location = oldCb.Location,
+            .Size = oldCb.Size,
+            .DropDownStyle = oldCb.DropDownStyle,
+            .Font = oldCb.Font,
+            .Enabled = oldCb.Enabled,
+            .Visible = oldCb.Visible,
+            .BackColor = oldCb.BackColor,
+            .ForeColor = oldCb.ForeColor,
+            .FlatStyle = oldCb.FlatStyle
+        }
+
+        If oldCb.DataSource IsNot Nothing Then
+            newCb.DataSource = oldCb.DataSource
+            newCb.DisplayMember = oldCb.DisplayMember
+            newCb.ValueMember = oldCb.ValueMember
+        Else
+            For Each it As Object In oldCb.Items
+                newCb.Items.Add(it)
+            Next
+        End If
+
+        newCb.SelectedIndex = Math.Min(oldCb.SelectedIndex, Math.Max(0, newCb.Items.Count - 1))
+
+        ' Réattacher handlers manuels si nécessaire:
+        ' AddHandler newCb.SelectedIndexChanged, AddressOf ComboBox1_SelectedIndexChanged
+
+        parent.SuspendLayout()
+        parent.Controls.Remove(oldCb)
+        parent.Controls.Add(newCb)
+        parent.Controls.SetChildIndex(newCb, idx)
+        parent.ResumeLayout()
+
+        newCb.BringToFront()
+        newCb.Focus()
+    End Sub
+End Module

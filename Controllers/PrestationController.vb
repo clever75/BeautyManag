@@ -1,0 +1,159 @@
+﻿' =====================================================
+' CONTROLLER PRESTATION
+' =====================================================
+Imports MySql.Data
+Imports MySql.Data.MySqlClient
+
+Public Class PrestationController
+
+    Public Function GetAllPrestations() As List(Of Prestation)
+        Dim liste As New List(Of Prestation)
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim cmd As New MySqlCommand("SELECT * FROM prestation ORDER BY idPrestation DESC", conn)
+            Dim reader = cmd.ExecuteReader()
+            While reader.Read()
+                liste.Add(LirePrestation(reader))
+            End While
+        End Using
+        Return liste
+    End Function
+
+    Public Function GetPrestationsActives() As List(Of Prestation)
+        Dim liste As New List(Of Prestation)
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim cmd As New MySqlCommand("SELECT * FROM prestation WHERE actif = TRUE ORDER BY categorie, nom", conn)
+            Dim reader = cmd.ExecuteReader()
+            While reader.Read()
+                liste.Add(LirePrestation(reader))
+            End While
+        End Using
+        Return liste
+    End Function
+
+    Public Function GetPrestationById(id As Integer) As Prestation
+        Try
+            Using conn = DBConnexion.GetConnexion()
+                conn.Open()
+                Dim sql = "SELECT * FROM prestation WHERE idPrestation = @id"
+                Using cmd As New MySqlClient.MySqlCommand(sql, conn)
+                    cmd.Parameters.AddWithValue("@id", id)
+                    Dim reader = cmd.ExecuteReader()
+                    If reader.Read() Then
+                        Dim p As New Prestation()
+                        p.IdPrestation = reader.GetInt32("idPrestation")
+                        p.Nom = reader.GetString("nom")
+                        p.Prix = reader.GetDecimal("prix")
+                        Return p
+                    End If
+                End Using
+            End Using
+        Catch
+        End Try
+        Return Nothing
+    End Function
+
+    Public Function GetCategories() As List(Of String)
+        Dim liste As New List(Of String)
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim cmd As New MySqlCommand("SELECT DISTINCT categorie FROM prestation WHERE categorie IS NOT NULL ORDER BY categorie", conn)
+            Dim reader = cmd.ExecuteReader()
+            While reader.Read()
+                liste.Add(reader.GetString("categorie"))
+            End While
+        End Using
+        Return liste
+    End Function
+
+    Public Sub AjouterPrestation(p As Prestation)
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim sql = "INSERT INTO prestation (nom, prix, dureeMinutes, categorie, description, actif)
+                       VALUES (@nom, @prix, @duree, @categorie, @description, @actif)"
+            Dim cmd As New MySqlCommand(sql, conn)
+            cmd.Parameters.AddWithValue("@nom", p.Nom)
+            cmd.Parameters.AddWithValue("@prix", p.Prix)
+            cmd.Parameters.AddWithValue("@duree", p.DureeMinutes)
+            cmd.Parameters.AddWithValue("@categorie", If(p.Categorie = "", DBNull.Value, p.Categorie))
+            cmd.Parameters.AddWithValue("@description", If(p.Description = "", DBNull.Value, p.Description))
+            cmd.Parameters.AddWithValue("@actif", p.Actif)
+            cmd.ExecuteNonQuery()
+        End Using
+    End Sub
+
+    Public Sub ModifierPrestation(p As Prestation)
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim sql = "UPDATE prestation SET nom=@nom, prix=@prix, dureeMinutes=@duree,
+                       categorie=@categorie, description=@description, actif=@actif
+                       WHERE idPrestation=@id"
+            Dim cmd As New MySqlCommand(sql, conn)
+            cmd.Parameters.AddWithValue("@nom", p.Nom)
+            cmd.Parameters.AddWithValue("@prix", p.Prix)
+            cmd.Parameters.AddWithValue("@duree", p.DureeMinutes)
+            cmd.Parameters.AddWithValue("@categorie", If(p.Categorie = "", DBNull.Value, p.Categorie))
+            cmd.Parameters.AddWithValue("@description", If(p.Description = "", DBNull.Value, p.Description))
+            cmd.Parameters.AddWithValue("@actif", p.Actif)
+            cmd.Parameters.AddWithValue("@id", p.IdPrestation)
+            cmd.ExecuteNonQuery()
+        End Using
+    End Sub
+
+    Public Sub DesactiverPrestation(id As Integer)
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim cmd As New MySqlCommand("UPDATE prestation SET actif = FALSE WHERE idPrestation = @id", conn)
+            cmd.Parameters.AddWithValue("@id", id)
+            cmd.ExecuteNonQuery()
+        End Using
+    End Sub
+
+    Private Function LirePrestation(reader As MySqlDataReader) As Prestation
+        Dim p As New Prestation()
+        p.IdPrestation = reader.GetInt32("idPrestation")
+        p.Nom = reader.GetString("nom")
+        p.Prix = reader.GetDecimal("prix")
+        p.DureeMinutes = reader.GetInt32("dureeMinutes")
+        p.Categorie = If(reader.IsDBNull(reader.GetOrdinal("categorie")), "", reader.GetString("categorie"))
+        p.Description = If(reader.IsDBNull(reader.GetOrdinal("description")), "", reader.GetString("description"))
+        p.Actif = reader.GetBoolean("actif")
+        Return p
+    End Function
+    Public Function NomExiste(nom As String, idExclure As Integer) As Boolean
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+
+            Dim sql = "SELECT COUNT(*) FROM prestation WHERE nom = @nom AND idPrestation <> @id"
+            Using cmd As New MySqlClient.MySqlCommand(sql, conn)
+                cmd.Parameters.AddWithValue("@nom", nom)
+                cmd.Parameters.AddWithValue("@id", idExclure)
+                Return Convert.ToInt32(cmd.ExecuteScalar()) > 0
+            End Using
+        End Using
+    End Function
+    Public Sub SupprimerPrestation(id As Integer)
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            Dim cmd As New MySqlCommand("DELETE FROM prestation WHERE idPrestation = @id", conn)
+            cmd.Parameters.AddWithValue("@id", id)
+            cmd.ExecuteNonQuery()
+        End Using
+    End Sub
+    Public Function ADesLiens(id As Integer) As Boolean
+        Using conn = DBConnexion.GetConnexion()
+            conn.Open()
+            ' Vérifie si la prestation est utilisée dans des rendez-vous ou factures
+            Dim sql = "SELECT COUNT(*) FROM rendezVous WHERE idPrestation = @id"
+            Using cmd As New MySqlCommand(sql, conn)
+                cmd.Parameters.AddWithValue("@id", id)
+                If Convert.ToInt32(cmd.ExecuteScalar()) > 0 Then Return True
+            End Using
+            ' Ajoute d'autres tables si nécessaire (ex: ligneFacture)
+            ' Dim sql2 = "SELECT COUNT(*) FROM ligneFacture WHERE idPrestation = @id"
+            ' ...
+            Return False
+        End Using
+    End Function
+End Class
