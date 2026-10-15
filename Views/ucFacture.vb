@@ -2,7 +2,7 @@
 ' USERCONTROL FACTURE
 ' =====================================================
 Imports Guna.UI2.WinForms
-
+Imports System.IO
 Public Class ucFacture
 
     Private _lignes As New List(Of FactureDetail)
@@ -54,7 +54,7 @@ Public Class ucFacture
         dgvLignes.ThemeStyle.RowsStyle.SelectionForeColor = ColorTranslator.FromHtml("#3D1A24")
 
         Try
-            Dim pathTrash = Application.StartupPath & "\Resources\ic_trash.png"
+            Dim pathTrash = Application.StartupPath & "\Ressources\ic_trash.png"
             If System.IO.File.Exists(pathTrash) Then
                 CType(dgvLignes.Columns("colSupprimerLigne"), DataGridViewImageColumn).Image =
                     Image.FromFile(pathTrash)

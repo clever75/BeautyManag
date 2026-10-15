@@ -1,6 +1,6 @@
 ﻿' =====================================================
 ' CLASSE UTILITAIRE — ÉTATS IMPRIMABLES
-' BeautyManag — HTML ouvert dans le navigateur
+' BeautyManager — HTML ouvert dans le navigateur
 ' =====================================================
 
 Imports System.Linq
@@ -130,7 +130,7 @@ Public Class EtatsHelper
         Dim sb As New StringBuilder()
         sb.AppendLine("<!DOCTYPE html><html lang='fr'><head>")
         sb.AppendLine("<meta charset='UTF-8'>")
-        sb.AppendLine("<title>RDV du jour — BeautyManag</title>")
+        sb.AppendLine("<title>RDV du jour — BeautyManager</title>")
         sb.AppendLine(CssCommun())
         sb.AppendLine("</head><body>")
 
@@ -138,7 +138,7 @@ Public Class EtatsHelper
         sb.AppendLine("  <div><div class='logo'>💅</div>")
         sb.AppendLine("    <h1>Rendez-vous du jour</h1>")
         sb.AppendLine("    <div class='sous-titre'>" & date_ & "</div></div>")
-        sb.AppendLine("  <div class='meta'>BeautyManag<br>Imprimé le " &
+        sb.AppendLine("  <div class='meta'>BeautyManager<br>Imprimé le " &
                       Date.Now.ToString("dd/MM/yyyy à HH:mm") & "</div>")
         sb.AppendLine("</div>")
 
@@ -195,11 +195,11 @@ Public Class EtatsHelper
         End If
 
         sb.AppendLine("</tbody></table>")
-        sb.AppendLine("<div class='footer'>BeautyManag · État généré le " &
+        sb.AppendLine("<div class='footer'>BeautyManager · État généré le " &
                       Date.Now.ToString("dd/MM/yyyy à HH:mm") & "</div>")
         sb.AppendLine("</body></html>")
 
-        OuvrirEtat(sb.ToString(), "BeautyManag_RdvJour")
+        OuvrirEtat(sb.ToString(), "BeautyManager_RdvJour")
     End Sub
 
     ' ══════════════════════════════════════════════
@@ -212,7 +212,7 @@ Public Class EtatsHelper
         Dim sb As New StringBuilder()
         sb.AppendLine("<!DOCTYPE html><html lang='fr'><head>")
         sb.AppendLine("<meta charset='UTF-8'>")
-        sb.AppendLine("<title>Historique Factures — BeautyManag</title>")
+        sb.AppendLine("<title>Historique Factures — BeautyManager</title>")
         sb.AppendLine(CssCommun())
         sb.AppendLine("</head><body>")
 
@@ -221,7 +221,7 @@ Public Class EtatsHelper
         sb.AppendLine("    <h1>Historique des factures</h1>")
         sb.AppendLine("    <div class='sous-titre'>" & factures.Count &
                       " facture(s) au total</div></div>")
-        sb.AppendLine("  <div class='meta'>BeautyManag<br>Imprimé le " &
+        sb.AppendLine("  <div class='meta'>BeautyManager<br>Imprimé le " &
                       Date.Now.ToString("dd/MM/yyyy à HH:mm") & "</div>")
         sb.AppendLine("</div>")
 
@@ -283,11 +283,11 @@ Public Class EtatsHelper
         End If
 
         sb.AppendLine("</tbody></table>")
-        sb.AppendLine("<div class='footer'>BeautyManag · État généré le " &
+        sb.AppendLine("<div class='footer'>BeautyManager · État généré le " &
                       Date.Now.ToString("dd/MM/yyyy à HH:mm") & "</div>")
         sb.AppendLine("</body></html>")
 
-        OuvrirEtat(sb.ToString(), "BeautyManag_Factures")
+        OuvrirEtat(sb.ToString(), "BeautyManager_Factures")
     End Sub
 
     ' ══════════════════════════════════════════════
@@ -301,7 +301,7 @@ Public Class EtatsHelper
         Dim sb As New StringBuilder()
         sb.AppendLine("<!DOCTYPE html><html lang='fr'><head>")
         sb.AppendLine("<meta charset='UTF-8'>")
-        sb.AppendLine("<title>Revenus par mois — BeautyManag</title>")
+        sb.AppendLine("<title>Revenus par mois — BeautyManager</title>")
         sb.AppendLine(CssCommun())
         sb.AppendLine("<style>
             .bar-row { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
@@ -323,7 +323,7 @@ Public Class EtatsHelper
         sb.AppendLine("    <h1>Revenus des 6 derniers mois</h1>")
         sb.AppendLine("    <div class='sous-titre'>Total : " &
                       FormatNombre(totalGeneral) & " F CFA</div></div>")
-        sb.AppendLine("  <div class='meta'>BeautyManag<br>Imprimé le " &
+        sb.AppendLine("  <div class='meta'>BeautyManager<br>Imprimé le " &
                       Date.Now.ToString("dd/MM/yyyy à HH:mm") & "</div>")
         sb.AppendLine("</div>")
 
@@ -376,11 +376,11 @@ Public Class EtatsHelper
         sb.AppendLine("</tr>")
         sb.AppendLine("</tbody></table>")
 
-        sb.AppendLine("<div class='footer'>BeautyManag · État généré le " &
+        sb.AppendLine("<div class='footer'>BeautyManager · État généré le " &
                       Date.Now.ToString("dd/MM/yyyy à HH:mm") & "</div>")
         sb.AppendLine("</body></html>")
 
-        OuvrirEtat(sb.ToString(), "BeautyManag_Revenus")
+        OuvrirEtat(sb.ToString(), "BeautyManager_Revenus")
     End Sub
 
     ' ══════════════════════════════════════════════
@@ -394,7 +394,7 @@ Public Class EtatsHelper
         Dim sb As New StringBuilder()
         sb.AppendLine("<!DOCTYPE html><html lang='fr'><head>")
         sb.AppendLine("<meta charset='UTF-8'>")
-        sb.AppendLine("<title>Top Prestations — BeautyManag</title>")
+        sb.AppendLine("<title>Top Prestations — BeautyManager</title>")
         sb.AppendLine(CssCommun())
         sb.AppendLine("<style>
             .rang { width:30px; height:30px; border-radius:50%;
@@ -412,7 +412,7 @@ Public Class EtatsHelper
         sb.AppendLine("    <h1>Top prestations — " & mois & "</h1>")
         sb.AppendLine("    <div class='sous-titre'>" & tops.Count &
                       " prestation(s) ce mois</div></div>")
-        sb.AppendLine("  <div class='meta'>BeautyManag<br>Imprimé le " &
+        sb.AppendLine("  <div class='meta'>BeautyManager<br>Imprimé le " &
                       Date.Now.ToString("dd/MM/yyyy à HH:mm") & "</div>")
         sb.AppendLine("</div>")
 
@@ -449,11 +449,11 @@ Public Class EtatsHelper
         End If
 
         sb.AppendLine("</tbody></table>")
-        sb.AppendLine("<div class='footer'>BeautyManag · État généré le " &
+        sb.AppendLine("<div class='footer'>BeautyManager · État généré le " &
                       Date.Now.ToString("dd/MM/yyyy à HH:mm") & "</div>")
         sb.AppendLine("</body></html>")
 
-        OuvrirEtat(sb.ToString(), "BeautyManag_TopPrestations")
+        OuvrirEtat(sb.ToString(), "BeautyManager_TopPrestations")
     End Sub
 
     ' ══════════════════════════════════════════════
@@ -465,7 +465,7 @@ Public Class EtatsHelper
         Dim sb As New StringBuilder()
         sb.AppendLine("<!DOCTYPE html><html lang='fr'><head>")
         sb.AppendLine("<meta charset='UTF-8'>")
-        sb.AppendLine("<title>RDV non facturés — BeautyManag</title>")
+        sb.AppendLine("<title>RDV non facturés — BeautyManager</title>")
         sb.AppendLine(CssCommun())
         sb.AppendLine("</head><body>")
 
@@ -475,7 +475,7 @@ Public Class EtatsHelper
         sb.AppendLine("    <h1>Rendez-vous non facturés</h1>")
         sb.AppendLine("    <div class='sous-titre'>" & rdvs.Count &
                       " RDV terminé(s) sans facture</div></div>")
-        sb.AppendLine("  <div class='meta'>BeautyManag<br>Imprimé le " &
+        sb.AppendLine("  <div class='meta'>BeautyManager<br>Imprimé le " &
                       Date.Now.ToString("dd/MM/yyyy à HH:mm") & "</div>")
         sb.AppendLine("</div>")
 
@@ -532,11 +532,11 @@ Public Class EtatsHelper
         End If
 
         sb.AppendLine("</tbody></table>")
-        sb.AppendLine("<div class='footer'>BeautyManag · État généré le " &
+        sb.AppendLine("<div class='footer'>BeautyManager · État généré le " &
                       Date.Now.ToString("dd/MM/yyyy à HH:mm") & "</div>")
         sb.AppendLine("</body></html>")
 
-        OuvrirEtat(sb.ToString(), "BeautyManag_RdvNonFactures")
+        OuvrirEtat(sb.ToString(), "BeautyManager_RdvNonFactures")
     End Sub
 
     ' ══════════════════════════════════════════════
@@ -563,7 +563,7 @@ Public Class EtatsHelper
         Dim sb As New StringBuilder()
         sb.AppendLine("<!DOCTYPE html><html lang='fr'><head>")
         sb.AppendLine("<meta charset='UTF-8'>")
-        sb.AppendLine("<title>CA du mois — BeautyManag</title>")
+        sb.AppendLine("<title>CA du mois — BeautyManager</title>")
         sb.AppendLine(CssCommun())
         sb.AppendLine("<style>
             .ca-hero { text-align:center;
@@ -587,7 +587,7 @@ Public Class EtatsHelper
         sb.AppendLine("    <h1>Chiffre d'affaires — " & mois & "</h1>")
         sb.AppendLine("    <div class='sous-titre'>Tableau de bord financier mensuel" &
                       "</div></div>")
-        sb.AppendLine("  <div class='meta'>BeautyManag<br>Imprimé le " &
+        sb.AppendLine("  <div class='meta'>BeautyManager<br>Imprimé le " &
                       Date.Now.ToString("dd/MM/yyyy à HH:mm") & "</div>")
         sb.AppendLine("</div>")
 
@@ -646,11 +646,11 @@ Public Class EtatsHelper
         Next
 
         sb.AppendLine("</tbody></table>")
-        sb.AppendLine("<div class='footer'>BeautyManag · État généré le " &
+        sb.AppendLine("<div class='footer'>BeautyManager · État généré le " &
                       Date.Now.ToString("dd/MM/yyyy à HH:mm") & "</div>")
         sb.AppendLine("</body></html>")
 
-        OuvrirEtat(sb.ToString(), "BeautyManag_ChiffreMois")
+        OuvrirEtat(sb.ToString(), "BeautyManager_ChiffreMois")
     End Sub
 
     ' ══════════════════════════════════════════════
