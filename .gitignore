@@ -1,0 +1,29 @@
+# --- Compilation (.NET / Visual Studio) ---
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.slnx.user
+
+# --- Publication et installeur (à mettre dans GitHub Releases) ---
+publish/
+output/
+installer/
+
+# --- Dépendances / fichiers locaux ---
+deps/
+
+# --- Configuration locale (contient souvent des identifiants BD) ---
+config.properties
+
+# --- Historique local de l'éditeur ---
+.history/
+
+# --- Sauvegardes, temporaires, OS ---
+*.sauvegarde
+.tmp.driveupload/
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
